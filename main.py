@@ -33,13 +33,16 @@ def setKeyPegs(guess, answer, keys):
     
     for peg in answer:
         nums.append(peg)
+    print(nums)
+    print(guess)
 
     for guessPos, guessNum in enumerate(guess):
         for answerPos, answerNum in enumerate(answer):
             if guessNum in nums:
                 if guessPos == answerPos:
                     keys.append('b')
-                keys.append('w')
+                else:
+                    keys.append('w')
                 nums.remove(guessNum)
                 break
 
@@ -48,6 +51,7 @@ def checkWin(key):
         print("Guesser wins!")
         return True
     else:
+        print(key)
         print("Try again")
         return False
 
