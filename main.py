@@ -21,6 +21,8 @@ def main():
         answer.append(random.randint(1, 6))
 
     # play the guess.
+    print(answer)
+    print(playerGuess)
     playGuess(playerGuess, answer, keyPegs, numTurns)
     checkWin(keyPegs)
 
@@ -29,55 +31,38 @@ def playGuess(guess, ans, key, turns):
     turns += 1
 
 def setKeyPegs(guess, answer, keys):
-    nums = []
+    tempGuess = []
+    tempAnswer = []
     tempKeys = []
-    keyBuilder = [['n', 0, 0], ['n', 0, 0], ['n', 0, 0], ['n', 0, 0]]
-    # keyBuilder indicates which key peg to add for each guess, if any.
-    # w = white, b = black, n = none
-    # second position = which value was matched.
-    # third position = which position in answer the value was found.
+
+    for peg in guess:
+        tempGuess.append(peg)
 
     for peg in answer:
-        nums.append(peg)
-    print(nums)
-    print(guess)
+        tempAnswer.append(peg)
 
-    for guessPos, guessNum in enumerate(guess):
-        for answerPos, answerNum in enumerate(answer):
-            if guessNum == answerNum:
-                if guessPos == answerPos:
-                    keyBuilder[guessPos] = ['b', guessNum, answerPos]
-                else:
-                    if keyBuilder[guessPos][0] == 'n':
-                        keyBuilder[guessPos] = ['w', guessNum, answerPos]
-    print(keyBuilder)
-
-    # construct the final key peg sequence.
-    # first add black pegs.
-    for peg in keyBuilder:
-        if peg[0] == 'b':
-            tempKeys.append(peg)
+    # add black key pegs. 
+    for pos, peg in enumerate(tempGuess):
+        for pos2, peg2 in enumerate(tempAnswer):
+            if (peg == peg2) and (pos == pos2) and (peg != 'n') and (peg2 != 'n'):
+                tempKeys.append('b')
+                tempGuess[pos] = 'n'
+                tempAnswer[pos2] = 'n'
+            
+    # add white key pegs.
+    for pos, peg in enumerate(tempGuess):
+        for pos2, peg2 in enumerate(tempAnswer):
+            if (peg == peg2) and (peg != 'n') and (peg2 != 'n'):
+                tempKeys.append('w')
+                tempGuess[pos] = 'n'
+                tempAnswer[pos2] = 'n'
     
-    # then reassign any white pegs to 'none' that were assigned for the positions that are now known to be black pegs.
-    for peg in keyBuilder:
-        for peg2 in tempKeys:
-            if peg[0] == 'w':
-                if (peg2[0] == 'b') and (peg[1] == peg2[1]):
-                    peg[0] = 'n'
-    print(keyBuilder)
-                
-    # then add white pegs.
-    for peg in keyBuilder:
-        if peg[0] == 'w':
-            tempKeys.append(peg)
-
-    # remove duplicate white pegs.
     for peg in tempKeys:
-        if peg not in keys:
-            keys.append(peg)
-
+        keys.append(peg)
+    
 def checkWin(key):
     if key == ['b', 'b', 'b', 'b']:
+        print(key)
         print("Guesser wins!")
         return True
     else:
