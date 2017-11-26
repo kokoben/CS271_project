@@ -4,7 +4,6 @@ def main():
     allCodes = []
     answer = []
     keyPegs = []
-    numTurns = 0
 
     # create the entire set of 1296 possible codes.
     for peg1 in range(1, 7):
@@ -23,12 +22,23 @@ def main():
     # play the guess.
     print(answer)
     print(playerGuess)
-    playGuess(playerGuess, answer, keyPegs, numTurns)
+    playGuess(playerGuess, answer, keyPegs)
     checkWin(keyPegs)
+    allCodes = getNewCodes(allCodes, playerGuess, keyPegs, answer)
 
-def playGuess(guess, ans, key, turns):
-    setKeyPegs(guess, ans, key)
-    turns += 1
+def getNewCodes(codes, lastGuess, lastGuessKeys, answer):
+    newCodesList = []
+
+    for code in codes:
+        keys = []
+        playGuess(lastGuess, code, keys)
+        if keys == lastGuessKeys:
+            newCodesList.append(code)    
+
+    return newCodesList
+
+def playGuess(guess, ans, keys):
+    setKeyPegs(guess, ans, keys)
 
 def setKeyPegs(guess, answer, keys):
     tempGuess = []
@@ -69,7 +79,6 @@ def checkWin(key):
         print(key)
         print("Try again")
         return False
-
 
 if __name__ == '__main__':
     main()
