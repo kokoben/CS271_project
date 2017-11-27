@@ -19,26 +19,26 @@ def main():
     for pos in range(4):
         answer.append(random.randint(1, 6))
 
-    # play the guess.
+    # play the guess and get new code list.
     print(answer)
     print(playerGuess)
-    playGuess(playerGuess, answer, keyPegs)
-    checkWin(keyPegs)
-    allCodes = getNewCodes(allCodes, playerGuess, keyPegs, answer)
+    allCodes = playGuess(playerGuess, answer, keyPegs, allCodes)
 
 def getNewCodes(codes, lastGuess, lastGuessKeys, answer):
     newCodesList = []
 
     for code in codes:
         keys = []
-        playGuess(lastGuess, code, keys)
+        setKeyPegs(lastGuess, code, keys)
         if keys == lastGuessKeys:
             newCodesList.append(code)    
 
     return newCodesList
 
-def playGuess(guess, ans, keys):
+def playGuess(guess, ans, keys, codes):
     setKeyPegs(guess, ans, keys)
+    checkWin(keys)
+    return getNewCodes(codes, guess, keys, ans)
 
 def setKeyPegs(guess, answer, keys):
     tempGuess = []
