@@ -1,6 +1,15 @@
 import random
 
 def main():
+    # prompt user for number of pegs and colors.
+    numPegs = 0
+    numColors = 0
+    while (numPegs < 4) or (numPegs > 8):
+        numPegs = int(input("Number of pegs (4-8): "))
+
+    while (numColors < 6) or (numPegs > 12):
+        numColors = int(input("Number of colors (6-12): "))
+
     globalAllCodes = []
     allCodes = []
     answer = []
@@ -15,8 +24,8 @@ def main():
     # set initial guess to 1122
     playerGuess = [1, 1, 2, 2]
     # randomly generate the correct answer.
-    for pos in range(4):
-        answer.append(random.randint(1, 6))
+    for pos in range(numPegs):
+        answer.append(random.randint(1, numColors))
 
     print("The secret code is: " + str(answer))
 
@@ -28,7 +37,7 @@ def main():
         # allCodes = playGuess(playerGuess, answer, keyPegs, allCodes)
         keyPegs = setKeyPegs(playerGuess, answer)
         allCodes = getNewCodes(allCodes, playerGuess, keyPegs)
-        won = checkWin(keyPegs)
+        won = checkWin(keyPegs, numPegs)
         if won:
             break
         print("Number of possible codes left: " + str(len(allCodes)))
@@ -135,8 +144,13 @@ def setKeyPegs(guess, answer):
     
     return tempKeys
     
-def checkWin(key):
-    if key == ['b', 'b', 'b', 'b']:
+def checkWin(key, numPegs):
+    correctKey = []
+
+    for peg in range(numPegs):
+        correctKey.append('b')
+
+    if key == correctKey:
         return True
     else:
         print("key pegs: " + str(key))
