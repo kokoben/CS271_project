@@ -1,4 +1,5 @@
 import random
+from itertools import product
 
 def main():
     # prompt user for number of pegs and colors.
@@ -14,51 +15,55 @@ def main():
     allCodes = []
     answer = []
     keyPegs = []
-    turn = 1
+    turn = 0
     won = False
 
     # create the entire set of 1296 possible codes.
-    createCodes(allCodes)
+    allCodes = createCodes(numPegs, numColors)
     # do it again for the codes that will be used in the minimax step. this list never shrinks.
-    createCodes(globalAllCodes)
+    globalAllCodes = createCodes(numPegs, numColors)
     # set initial guess to 1122
     playerGuess = [1, 1, 2, 2]
     # randomly generate the correct answer.
     for pos in range(numPegs):
         answer.append(random.randint(1, numColors))
-
+    # determine key pegs for the initial guess.
+    keyPegs = setKeyPegs(playerGuess, answer)
     print("The secret code is: " + str(answer))
 
     while not won:
-        print("Turn " + str(turn) + ":")
         print("----------------------------------------")
         # play the guess and get new code list.
         print("Player's guess: " + str(playerGuess))
-        # allCodes = playGuess(playerGuess, answer, keyPegs, allCodes)
-        keyPegs = setKeyPegs(playerGuess, answer)
-        allCodes = getNewCodes(allCodes, playerGuess, keyPegs)
-        won = checkWin(keyPegs, numPegs)
+        won = checkWin(keyPegs, numPegs, turn)
         if won:
             break
+        turn += 1
+        print("Turn " + str(turn) + ":")
+        # allCodes = playGuess(playerGuess, answer, keyPegs, allCodes)
+        keyPegs = setKeyPegs(playerGuess, answer)
+        print("Shrinking possible codes...")
+        allCodes = getNewCodes(allCodes, playerGuess, keyPegs)
         print("Number of possible codes left: " + str(len(allCodes)))
+        print("Applying minimax to remaining codes...")
         playerGuess = applyMinimax(globalAllCodes, allCodes, playerGuess, keyPegs, answer, 4) 
         print('next guess: ' + str(playerGuess))
-        turn += 1
+        print("Determining keys for new guess...")
+        keyPegs = setKeyPegs(playerGuess, answer)
 
-    print("The secret code is: " + str(playerGuess))
-    print("Solved!")
+    print('\n')
+    print('Finished!')
+    print("The guess is: " + str(playerGuess))
+    print("The secret answer is: " + str(answer))
+    print("Solved in " + str(turn) + " turn(s)!")
 
     return 
 
 def applyMinimax(globalCodes, currentCodes, lastGuess, lastGuessKeys, answer, numPegs):
     # generate all possible key combinations.
     outcomes = []
-    
-    for i in range(numPegs):
-        for j in range(numPegs):
-            for k in range(numPegs):
-                for l in range(numPegs):
-                    outcomes.append([i, j, k, l])
+    for key in product(('b', 'w'), repeat = numPegs):
+        outcomes.append(key)
             
     # next guess is max of the min scores.
     nextGuessScore = 0
@@ -108,12 +113,13 @@ def getNewCodes(codes, guess, guessKeys):
 
     return newCodesList
 
-def createCodes(codes):
-    for peg1 in range(1, 7):
-        for peg2 in range(1, 7):
-            for peg3 in range(1, 7):
-                for peg4 in range(1, 7):
-                    codes.append([peg1, peg2, peg3, peg4])
+def createCodes(numPegs, numColors):
+    codes = []
+
+    for code in product(range(1, numColors + 1), repeat = numPegs):
+        codes.append(code)
+
+    return codes
 
 def setKeyPegs(guess, answer):
     tempGuess = []
@@ -129,32 +135,34 @@ def setKeyPegs(guess, answer):
     # add black key pegs. 
     for pos, peg in enumerate(tempGuess):
         for pos2, peg2 in enumerate(tempAnswer):
-            if (peg == peg2) and (pos == pos2) and (peg != 'n') and (peg2 != 'n'):
+            if (peg == peg2) and (pos == pos2) and (peg != None) and (peg2 != None):
                 tempKeys.append('b')
-                tempGuess[pos] = 'n'
-                tempAnswer[pos2] = 'n'
+                tempGuess[pos] = None
+                tempAnswer[pos2] = None
             
     # add white key pegs.
     for pos, peg in enumerate(tempGuess):
         for pos2, peg2 in enumerate(tempAnswer):
-            if (peg == peg2) and (peg != 'n') and (peg2 != 'n'):
+            if (peg == peg2) and (peg != None) and (peg2 != None):
                 tempKeys.append('w')
-                tempGuess[pos] = 'n'
-                tempAnswer[pos2] = 'n'
+                tempGuess[pos] = None 
+                tempAnswer[pos2] = None
     
     return tempKeys
     
-def checkWin(key, numPegs):
+def checkWin(key, numPegs, turn):
     correctKey = []
 
     for peg in range(numPegs):
         correctKey.append('b')
 
     if key == correctKey:
+        print("key pegs: " + str(key))
         return True
     else:
         print("key pegs: " + str(key))
-        print("Try again")
+        if turn != 0:
+            print("Try again")
         return False
 
 if __name__ == '__main__':
