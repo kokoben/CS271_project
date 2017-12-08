@@ -15,17 +15,15 @@ def main():
     allCodes = []
     answer = []
     keyPegs = []
-    playerGuess = []
     turn = 0
     won = False
 
-    # create the entire set of possible codes.
+    # create the entire set of 1296 possible codes.
     allCodes = createCodes(numPegs, numColors)
     # do it again for the codes that will be used in the minimax step. this list never shrinks.
     globalAllCodes = createCodes(numPegs, numColors)
-    # set initial guess, all peg's colors are either 1 or 2
-    for pos in range(numPegs):
-        playerGuess.append(random.randint(1, 2))
+    # set initial guess to 1122
+    playerGuess = [1, 1, 2, 2]
     # randomly generate the correct answer.
     for pos in range(numPegs):
         answer.append(random.randint(1, numColors))
@@ -37,17 +35,18 @@ def main():
         print("----------------------------------------")
         # play the guess and get new code list.
         print("Player's guess: " + str(playerGuess))
-        globalAllCodes.remove(tuple(playerGuess) )
         won = checkWin(keyPegs, numPegs, turn)
         if won:
             break
         turn += 1
         print("Turn " + str(turn) + ":")
+        # allCodes = playGuess(playerGuess, answer, keyPegs, allCodes)
+        keyPegs = setKeyPegs(playerGuess, answer)
         print("Shrinking possible codes...")
         allCodes = getNewCodes(allCodes, playerGuess, keyPegs)
         print("Number of possible codes left: " + str(len(allCodes)))
         print("Applying minimax to remaining codes...")
-        playerGuess = applyMinimax(globalAllCodes, allCodes, playerGuess, keyPegs, answer, numPegs)
+        playerGuess = applyMinimax(globalAllCodes, allCodes, playerGuess, keyPegs, answer, 4) 
         print('next guess: ' + str(playerGuess))
         print("Determining keys for new guess...")
         keyPegs = setKeyPegs(playerGuess, answer)
@@ -63,41 +62,38 @@ def main():
 def applyMinimax(globalCodes, currentCodes, lastGuess, lastGuessKeys, answer, numPegs):
     # generate all possible key combinations.
     outcomes = []
-    for i in range(0,numPegs+1):
-        for key in product(('b', 'w'), repeat = i):
-            outcomes.append(list(key) )
+    for key in product(('b', 'w'), repeat = numPegs):
+        outcomes.append(key)
             
     # next guess is max of the min scores.
     nextGuessScore = 0
     possibleNextGuesses = []
 
-    for i, guess in enumerate(globalCodes):
-        #print(i + 1)
-        #print(guess)
+    for i, guess in enumerate(currentCodes):
+        print(i + 1)
+        print(guess)
         hitsPerOutcome = []
         for i in range(len(outcomes)):
             hitsPerOutcome.append(0)
 
-        ## calculates number of hits for each value of outcome, for a given guess
-        for node in currentCodes:
-           codeKeys = setKeyPegs(node, guess)
-           pos = outcomes.index(codeKeys)
-           hitsPerOutcome[pos] += 1
-
-        score = len(currentCodes) - max(hitsPerOutcome)
+        for pos, outcome in enumerate(outcomes):
+            codeKeys = []
+            for solution in globalCodes:
+               codeKeys = setKeyPegs(guess, solution)
+               if codeKeys == outcome:
+                hitsPerOutcome[pos] += 1
+            score = len(currentCodes) - max(hitsPerOutcome)
 
         if score == nextGuessScore:
             possibleNextGuesses.append(guess)
         elif score > nextGuessScore:
             possibleNextGuesses = [guess]
-            nextGuessScore = score
             
     # select a guess from the possible next guesses. choose from currentCodes if possible.
     guessesInCurrentCodes = []
     for guess in possibleNextGuesses:
         if guess in currentCodes:
             guessesInCurrentCodes.append(guess)
-            break           # since we need only the 1st guess
 
     if guessesInCurrentCodes != []:
         nextGuess = guessesInCurrentCodes[0]
@@ -129,7 +125,6 @@ def setKeyPegs(guess, answer):
     tempGuess = []
     tempAnswer = []
     tempKeys = []
-    numPegs = len(guess)
 
     for peg in guess:
         tempGuess.append(peg)
@@ -137,12 +132,13 @@ def setKeyPegs(guess, answer):
     for peg in answer:
         tempAnswer.append(peg)
 
-    # add black key pegs.
-    for pos in range(numPegs):
-        if (tempGuess[pos] == tempAnswer[pos]):
-            tempKeys.append('b')
-            tempGuess[pos] = None
-            tempAnswer[pos] = None
+    # add black key pegs. 
+    for pos, peg in enumerate(tempGuess):
+        for pos2, peg2 in enumerate(tempAnswer):
+            if (peg == peg2) and (pos == pos2) and (peg != None) and (peg2 != None):
+                tempKeys.append('b')
+                tempGuess[pos] = None
+                tempAnswer[pos2] = None
             
     # add white key pegs.
     for pos, peg in enumerate(tempGuess):
@@ -151,7 +147,7 @@ def setKeyPegs(guess, answer):
                 tempKeys.append('w')
                 tempGuess[pos] = None 
                 tempAnswer[pos2] = None
-                break       # break from inner loop
+    
     return tempKeys
     
 def checkWin(key, numPegs, turn):
