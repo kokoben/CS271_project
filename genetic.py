@@ -84,7 +84,7 @@ def genetic_search():
             population = newPopulation
             h+=1
 
-        # play guess from E
+        # play next guess from E
         if len(E) !=0:
             playerGuess = getNextGuessFromEligibleCodes(E)
         else:
