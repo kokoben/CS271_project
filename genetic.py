@@ -14,11 +14,9 @@ def genetic_search():
     playerGuess = []
     guesses = [[]]
     population = []
-    populationSize = 150
+    populationSize = 200
     maxGen = 100             ## maximum number of populations generated for each guess
     maxSize = 60             ## maximum size of eligibleCodes for each guess
-
-    populationSize = 150
 
     while (numPegs < 4) or (numPegs > 8):
         numPegs = int(input("Number of pegs (4-8): "))
@@ -54,12 +52,12 @@ def genetic_search():
         E = []                                   ## set of eligible codes for ith guess
 
         #initialize population randomly
-        population = random.sample(globalAllCodes,150)
+        population = random.sample(globalAllCodes,populationSize)
         c = 0
         while(h<=maxGen and len(E)<maxSize):
             # calculate fitness of the population, and eligible codes in this population
             fitness = calculateFitness(population, guesses, blackPegs, whitePegs,turn-1)
-            fitness.sort(key=lambda code: code[1])
+            #fitness.sort(key=lambda code: code[1])
 
             # list of codes whose fitness score is 0
             eligibleCodesList = [ fitness[i][0] for i in range(len(fitness)) if fitness[i][1]==0 ]
@@ -76,7 +74,7 @@ def genetic_search():
                 child = reproduce(x, y, numPegs, numColors)
                 #if child already in population, generate a random code and add to population
                 if child in newPopulation:
-                    while(child not in newPopulation):
+                    while(child in newPopulation):
                         child = random.choice(globalAllCodes)
 
                 newPopulation.append(child)
@@ -85,11 +83,12 @@ def genetic_search():
             h+=1
 
         # play next guess from E
-        if len(E) !=0:
-            playerGuess = getNextGuessFromEligibleCodes(E)
+        if len(E)!=0:
+            playerGuess,score = getNextGuessFromEligibleCodes(E),0
         else:
-            playerGuess = fitness[0][0]
-        print("Player's guess: " + str(playerGuess))
+            playerGuess,score = fitness[0][0], fitness[0][1]
+
+        print("Player's guess: %s, score: %d" %(str(playerGuess),score) )
         guesses.append(playerGuess)
         # get response (blackPegs, whitePegs)
         b, w = setKeyPegs(playerGuess, answer)
@@ -121,7 +120,7 @@ def calculateFitness(population, guesses, blackPegs, whitePegs, numGuesses):
             blackPegsDiff+=abs(blackPegs[g] - b)
             whitePegsDiff += abs(whitePegs[g] - w)
 
-        fitness.append([code,blackPegsDiff+whitePegsDiff])
+        fitness.append([code,2*blackPegsDiff+whitePegsDiff])
 
     return fitness
 
@@ -135,11 +134,11 @@ def getParentsFromPopulation(fitness, populationSize):
         for i in range(maxScore-fitness_score+1):
             codes.append(code)
 
-    random.shuffle(codes)
+    #random.shuffle(codes)
     x = random.choice(codes)
-    while y!=x:
+    y = x
+    while y==x:
         y = random.choice(codes)
-
     return x, y
 
 ## generate all possible codes
