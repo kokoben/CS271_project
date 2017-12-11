@@ -1,21 +1,25 @@
+
 import random
 import numpy
 
 allColors = range(1,numColors+1)
-numPegs = 4
+#numPegs = 0
 
 def main():
     global allColors
     global numPegs
     # prompt user for number of pegs and colors.
-    numPegs = 4
+    numPegs = 0
     numColors = 0
-    #while (numPegs < 4) or (numPegs > 8):
-     #   numPegs = int(input("Number of pegs (4-8): "))
+    while (numPegs < 4) or (numPegs > 8):
+        numPegs = int(input("Number of pegs (4-8): "))
 
-    while (numColors < 6) or (numColors > 12):
-        numColors = int(input("Number of colors (6-12): "))
-        
+    #while (numColors < 6) or (numColors > 12):
+    numColors = int(input("Number of colors (6-12): "))
+    
+    import pdb
+    pdb.set_trace()    
+    
     allColors = range(1,numColors+1)
     answer = []
     keyPegs = []
@@ -29,9 +33,9 @@ def main():
         answer.append(random.randint(1, numColors))
         
     for pos in range(numPegs):
-        playerGuess.append(random.randint(1, numColors))
-
-    playerGuess = [1,1,2,2]
+        playerGuess.append(random.randint(1,2))
+    
+    #playerGuess = [1,1,2,2]
 
     CFG = playerGuess
     turns = 1
@@ -56,10 +60,13 @@ def main():
             rand = random.sample(set(allColors),1)
             playerGuess.append(rand[0])
                 
-    if scoreCFG==13:
+    if (numPegs==4 and scoreCFG==14):
         print("The secret answer is: " + str(answer))
         return
-    
+    if (numPegs==5 and scoreCFG==19):
+        print("The secret answer is: " + str(answer))
+        return
+
     won = False
     
     while not won:
@@ -98,7 +105,12 @@ def main():
             CFG = npg
             CFGkeyPegs, CFGnumBlack, CFGnumWhite = npgkeyPegs,temp_npg_numBlack,temp_npg_numWhite
 
-        if scoreNPG == 13:
+        #if scoreNPG == 13:
+         #   won = True
+            
+        if (numPegs==4 and scoreCFG==14):
+            won = True
+        if (numPegs==5 and scoreCFG==19):
             won = True
 
     print('\n')
@@ -116,7 +128,7 @@ def getNewGuessHillClimbing(lastGuess,lastkeyPegs,cfgnumBlack,cfgnumWhite, score
     global allColors
     global numPegs
     cfg = lastGuess
-    count =0
+    #count =0
     while True:
         npg = newPotentialGuess(cfg,cfgnumBlack,cfgnumWhite, scoreCFG)
         keyPegs,numBlack,numWhite = getKeyPegs(npg, cfg)
@@ -138,28 +150,28 @@ def getNewGuessHillClimbing(lastGuess,lastkeyPegs,cfgnumBlack,cfgnumWhite, score
 def newPotentialGuess(cfg,numBlack,numWhite, scoreCFG):
     global allColors
     global numColors
-    localColors = range(1,numColors+1)
-    npg = [0,0,0,0]
-    init = [0,1,2,3]
-    rand = random.sample(set([0,1,2,3]), numBlack)
+    #localColors = range(1,numColors+1)
+    npg = range(0,numPegs)
+    index = range(0,numPegs)
+    rand = random.sample(index, numBlack)
     for pos in rand:
         npg[pos]=cfg[pos]
     for i in rand:
-        init.remove(i)
-    randWhite=random.sample(set(init), numWhite)
+        index.remove(i)
+    randWhite=random.sample(index, numWhite)
 
 
     for pos in randWhite:
-        r=random.sample(set(init), 1)
+        r=random.sample(index, 1)
         r=r[0]
         if(pos!=r):
             npg[r]=cfg[pos]
-            init.remove(r)
+            index.remove(r)
         else:
-            r = random.sample(set(init), 1)
+            r = random.sample(index, 1)
             r = r[0]
             npg[r] = cfg[pos]
-            init.remove(r)
+            index.remove(r)
 
     #find distinct
     cfgColors = []
@@ -170,12 +182,11 @@ def newPotentialGuess(cfg,numBlack,numWhite, scoreCFG):
     p = getProbabilityDist(cfg, npg)
 
 
-    for pos in init:
+    for pos in index:
         npg[pos] = numpy.random.choice(numpy.array(allColors), p=p)
          
     return npg
-'''heuristtic = [0,0] = 0, [0,1]=1,[1,0]=2,[0,2]=3,[1,1]=4,[2,0]=5, [0,3]=6,[1,2]=7,[2,1]=8,[3,0]=9,[0,4]=10, 
-[1,3] = 11, [2,2] = 12 and [4,0] = 13'''
+
 
 def getProbabilityDist(cfg, npg):
     global allColors
@@ -219,9 +230,15 @@ def getProbabilityDist(cfg, npg):
 
     return p.values()
 
+'''heuristtic = [0,0] = 0, [0,1]=1,[1,0]=2,[0,2]=3,[1,1]=4,[2,0]=5, [0,3]=6,[1,2]=7,[2,1]=8,[3,0]=9,[0,4]=10, 
+[1,3] = 11, [2,2] = 12 and [4,0] = 13'''
+
+'''heuristic for 5numpegs = [0,0]=0; [0,1]=1; [1,0]=2; [0,2]=3; [1,1]=4; [2,0]=5; [0,3]=6; [1,2]=7; 
+[2,1]=8; [3,0]=9; [0,4]=10; [1,3]=11; [2,2]=12; [3,1]=13; [4,0]=14; [0,5]=15; [1,4]=16; [2,3]=17; 
+[3,2]=18; [5,0]=19 '''
 
 def getScore(numBlack,numWhite):
-    scoreMap = {"00":0,"01":1,"10":2,"02":3,"11":4,"20":5,"03":6,"12":7,"21":8,"30":9,"04":10,"13":11,"22":12,"40":13}
+    scoreMap = {"00":0,"01":1,"10":2,"02":3,"11":4,"20":5,"03":6,"12":7,"21":8,"30":9,"04":10,"13":11,"22":12,"31":13,"40":14,"05":15,"14":16,"23":17,"32":18,"50":19}
     scoreStr = str(numBlack)+str(numWhite)
     return scoreMap[scoreStr]
 
@@ -231,7 +248,7 @@ def getKeyPegs(guess, answer):
     tempAnswer = []
     tempKeys = []
 #    numPegs = len(guess)
-    numPegs = 4
+#    numPegs = 4
     numBlack = 0
     numWhite = 0
 
